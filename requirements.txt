@@ -1,0 +1,80 @@
+# Core Web Frameworks & Utilities
+fastapi
+uvicorn
+asgiref
+aiofiles
+black
+loguru
+validators
+poetry
+aiocache
+python-multipart
+
+# Authentication & Security
+authlib
+PyJWT
+cryptography
+ldap3
+passlib
+
+# AI / ML / NLP
+torch
+numpy
+tiktoken
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+huggingface_hub
+chromadb
+colbert-ai
+ftfy
+
+# Data Processing
+pytz
+markdown
+beautifulsoup4
+fpdf
+pydub
+playhouse
+peewee
+peewee-migrate
+pycrdt
+
+# Search
+duckduckgo-search
+elasticsearch
+opensearch-py
+qdrant-client
+pinecone-client
+
+# Cloud & Storage
+azure-storage-blob
+google-cloud-storage
+gcp-storage-emulator
+boto3
+botocore
+pgvector
+pymilvus
+oracledb
+azure-identity
+
+# Networking
+python-socketio
+websocket-client
+grpcio
+opentelemetry-api
+opentelemetry-sdk
+redis
+docker
+
+# Testing
+pytest-docker
+moto
+
+# Development / Utilities
+alembic
+ddgs
+starlette-compress
+sentence-transformers
+

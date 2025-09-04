@@ -1,0 +1,42 @@
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_base: "https://openai-dil.openai.azure.com/"
+      api_key: "${AZURE_OPENAI_API_KEY}"
+      api_version: 2025-01-01-preview
+      provider: azure
+  
+  - model_name: o1-mini
+    litellm_params:
+      model: o1-mini
+      api_base: "https://openai-dil.openai.azure.com/"
+      api_key: "${AZURE_OPENAI_API_KEY}"
+      provider: openai
+  - model_name: gemini-1.5-flash
+    litellm_params:
+      model: gemini-1.5-flash
+      api_key: "${GEMINI_API_KEY}"
+      api_base: "https://api.generative.google/v1/models"
+      provider: gemini
+
+general_settings:
+  master_key: "${MASTER_KEY}"
+  store_prompts_in_spend_logs: true
+  user_header_name: X-OpenWebUI-User-ID
+  default_model: gpt-4o
+
+litellm_settings:
+  
+  set_verbose: true
+  cache: true
+  drop_params: false
+  model_config:
+    protected_namespaces: ()
+
+cache:
+  type: redis
+  host: redis
+  port: 6379
+  db: 0
+  password: null

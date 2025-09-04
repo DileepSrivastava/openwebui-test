@@ -1,0 +1,66 @@
+# ------------------------
+# Python
+# ------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.env
+.venv/
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ------------------------
+# VS Code / IDEs
+# ------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------
+# Docker
+# ------------------------
+*.pem
+*.key
+*.crt
+*.pid
+docker-compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.*.yml
+docker-compose.override.*.yaml
+
+# Docker volumes (if you want to rebuild fresh)
+project_postgres_data/
+project_open-webui/
+project_n8n_storage/
+project_ollama_data/
+project_redis_data/
+caddy_data/
+caddy_config/
+open-webui_ollama/
+
+# ------------------------
+# Caddy / Web
+# ------------------------
+CaddyWebRoot/
+caddy/caddy_config/
+
+# ------------------------
+# OS / System
+# ------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------
+# Other sensitive files
+# ------------------------
+myNewVM_key.pem

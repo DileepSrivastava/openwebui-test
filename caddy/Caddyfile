@@ -1,0 +1,29 @@
+myopenchatai.in {
+    reverse_proxy open-webui:8080
+    tls dileepkumar105@gmail.com
+}
+
+litellm.myopenchatai.in {
+    reverse_proxy litellm:4000
+    tls dileepkumar105@gmail.com
+}
+
+n8n.myopenchatai.in {
+    reverse_proxy n8n:5678
+    tls dileepkumar105@gmail.com
+}
+
+tika.myopenchatai.in {
+    reverse_proxy tika:9998
+    tls dileepkumar105@gmail.com
+}
+
+searx.myopenchatai.in {
+    reverse_proxy searxng:8080
+    tls dileepkumar105@gmail.com
+}
+
+crawl4ai.myopenchatai.in {
+    reverse_proxy crawl4ai:11235
+    tls dileepkumar105@gmail.com
+}

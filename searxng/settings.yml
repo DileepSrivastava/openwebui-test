@@ -1,0 +1,48 @@
+use_default_settings: true
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  base_url: "https://a91706e381c2.ngrok-free.app/"
+  secret_key: "b9f2dbb611cd887fe192fc30b61f2f908b972018c3fc9b647c0c892b47361360"
+  image_proxy: true
+  limiter: false 
+  cache: redis://redis:6379/0
+  request_headers:
+    Accept-Language: "en-US,en;q=0.9"
+    
+  
+
+search:
+  formats:
+    - json
+  safe_search: 0            # 0 means off, 1 means safe search on
+  autocomplete: ""          # Empty disables autocomplete
+  use_default_engine: false # disables the default engine
+
+ui:
+  static_use_hash: true
+  locator_selector: false
+
+engines:
+  - name: duckduckgo
+    shortcut: ddg
+    timeout: 4.0
+    weight: 1.2
+  - name: wikipedia
+    shortcut: wiki
+    timeout: 2.5
+    engine: wikipedia
+    language: en
+    disabled: false
+    weight: 1.5
+  - name: startpage
+    disabled: true
+
+cache:
+  type: redis
+  expire: 1800
+  threshold: 500
+
+formats:
+    - json

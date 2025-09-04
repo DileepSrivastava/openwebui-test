@@ -1,0 +1,251 @@
+
+
+services:
+  # OpenWebUI
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    environment:
+      - ENABLE_FORWARD_USER_INFO_HEADERS=False
+      - OPENWEBUI_AUTH=True
+      #- WEBUI_AUTH_SIGNOUT_REDIRECT_URL=${WEBUI_AUTH_SIGNOUT_REDIRECT_URL}
+      - WEBUI_AUTH=local
+      #- WEBUI_AUTH_GOOGLE_CLIENT_ID=${WEBUI_AUTH_GOOGLE_CLIENT_ID}
+      #- WEBUI_AUTH_GOOGLE_CLIENT_SECRET=${WEBUI_AUTH_GOOGLE_CLIENT_SECRET}
+      #- WEBUI_AUTH_GOOGLE_ALLOWED_DOMAINS=gmail.com
+      - WEBUI_NAME=openChatAI
+      - EMBEDDING_MODEL=gpt-4o
+      - ENABLE_WEBSOCKET_SUPPORT=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE_URL=http://ollama:11434/v1
+      - ENABLE_RAG_WEB_SEARCH=True
+      - RAG_WEB_SEARCH_ENGINE=searxng
+      - RAG_WEB_SEARCH_RESULT_COUNT=5
+      - THREAD_POOL_SIZE=100
+      - DATABASE_POOL_SIZE=100
+      - DATABASE_POOL_TIMEOUT=30
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      - WEBUI_AUTH_COOKIE_SAME_SITE=Lax
+      - DATABASE_URL=postgresql://n8n_user:${POSTGRES_PASSWORD}@postgres:5432/openwebui_db
+
+
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - owu-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+
+  # Ollama LLM backend
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+      - "11434:11434"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}  # optional if needed by Ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - owu-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Tika for document processing
+  tika:
+    image: apache/tika:latest-full
+    container_name: tika
+    restart: unless-stopped
+    ports:
+      - "9998:9998"
+    networks:
+      - owu-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  # n8n workflow automation
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=${POSTGRES_SERVER}
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SSL_ENABLED=false
+      - N8N_SECURE_COOKIE=false
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom
+      - N8N_LOAD_FROM=/home/node/.n8n/custom
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=1
+      - N8N_HOST=n8n.myopenchatai.in
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.myopenchatai.in/
+    networks:
+      - owu-network
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./n8n/community-nodes:/home/node/.n8n/custom
+    env_file:
+      - .env
+
+  # Crawl4AI for crawling
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai
+    restart: always
+    ports:
+      - "11235:11235"
+    networks:
+      - owu-network
+
+  # SearxNG for RAG web search
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    sysctls:
+      - net.ipv4.tcp_slow_start_after_idle=0
+      - net.ipv4.tcp_keepalive_time=300
+    networks:
+      - owu-network
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - UWSGI_WORKERS=8
+      - UWSGI_THREADS=4
+      - SEARXNG_ENABLE_METRICS=true
+      - SEARXNG_BASE_URL=http://localhost:8888/
+    depends_on:
+      - redis
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+
+  # Redis cache
+  redis:
+    container_name: redis
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      - MAXMEMORY=6gb
+      - MAXMEMORY_POLICY=allkeys-lru
+      - MAXMEMORY_CLIENTS_PCT=90
+      - TIMEOUT=300
+      - TCP_KEEPALIVE=300
+    networks:
+      - owu-network
+    volumes:
+      - redis_data:/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+
+  # Caddy reverse proxy
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./CaddyWebRoot:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - owu-network
+
+  # Postgres for n8n
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=n8n_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=n8n_db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U n8n_user -d n8n_db" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    networks:
+      - owu-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  open-webui:
+  n8n_storage:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  redis_data:
+  ollama_data:
+
+networks:
+  owu-network:
+    driver: bridge
